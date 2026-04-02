@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import type { Message } from "@/components/chat-view";
 
 const STORAGE_KEY = "pathly-chats";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const isProd = process.env.NODE_ENV === "production";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || (isProd ? "/_/backend" : "http://localhost:8000");
 
 interface Chat {
   id: string;
