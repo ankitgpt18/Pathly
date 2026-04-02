@@ -1,6 +1,6 @@
-# Pathly
-
 ![Pathly Logo](screenshot/logo.png)
+
+# Pathly
 
 Voice Controlled Transport AI
 
