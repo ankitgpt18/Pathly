@@ -1,4 +1,6 @@
-![Pathly Logo](screenshot/logo.png)
+<p align="center">
+  <img src="screenshot/logo.png" alt="Pathly Logo" />
+</p>
 
 # Pathly
 
