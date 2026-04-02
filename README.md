@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="screenshot/logo.png" alt="Pathly Logo" width="250" />
+  <img src="screenshot/logo.png" alt="Pathly Logo" width="100" />
 </p>
 
 # Pathly
