@@ -1,74 +1,70 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, UploadFile, File
+from fastapi.responses import JSONResponse
 import json
+
+from services.llm import chat_with_gemini
 
 router = APIRouter(prefix="/api")
 
 
+@router.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...)):
+    """Offline speech-to-text via Vosk. Accepts audio file, returns transcribed text."""
+    try:
+        from services.stt import transcribe_audio as vosk_transcribe
+
+        audio_bytes = await file.read()
+        text = vosk_transcribe(audio_bytes)
+        return {"text": text, "engine": "vosk"}
+    except ImportError:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Vosk not installed. Run: pip install vosk soundfile"},
+        )
+    except Exception as e:
+        print(f"Transcription error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Transcription failed: {str(e)}"},
+        )
+
+
 @router.websocket("/voice")
 async def voice_endpoint(websocket: WebSocket):
+    """WebSocket voice endpoint — real-time chat via Gemini."""
     await websocket.accept()
+    conversation_history = []
 
     try:
         while True:
             raw = await websocket.receive_text()
             message = json.loads(raw)
-
             text = message.get("text", "")
             if not text:
                 await websocket.send_json({"error": "No text received"})
                 continue
 
-            from services.intent import classify_intent
-            from services.transport import get_next_bus, get_fare, get_nearby_stops
-            from services.navigation import get_directions, geocode
-            from services.response import (
-                format_eta_response,
-                format_fare_response,
-                format_nearby_response,
-                format_route_response,
-                format_unknown_response,
+            lat = message.get("lat", 0) or 0
+            lon = message.get("lon", 0) or 0
+
+            # Add to conversation history
+            conversation_history.append({"role": "user", "content": text})
+
+            result = await chat_with_gemini(
+                text=text,
+                lat=lat,
+                lon=lon,
+                history=conversation_history[-10:],
             )
 
-            intent = classify_intent(text)
-            intent_type = intent["type"]
-            dest = intent.get("destination")
-            lat = message.get("lat")
-            lon = message.get("lon")
-
-            reply = ""
-            response_data = {}
-
-            if intent_type == "eta":
-                bus_data = await get_next_bus("default")
-                reply = format_eta_response(bus_data)
-                response_data = bus_data
-
-            elif intent_type == "fare":
-                fare_data = await get_fare(intent.get("origin", "origin"), dest or "destination")
-                reply = format_fare_response(fare_data)
-                response_data = fare_data
-
-            elif intent_type == "nearby":
-                stops = await get_nearby_stops(lat or 28.6139, lon or 77.2090)
-                reply = format_nearby_response(stops)
-                response_data = {"stops": stops}
-
-            elif intent_type == "route" and dest:
-                coords = await geocode(dest)
-                if coords:
-                    route_data = await get_directions(lat or 28.6139, lon or 77.2090, coords[0], coords[1])
-                else:
-                    route_data = await get_directions(28.6139, 77.2090, 28.5562, 77.1000)
-                reply = format_route_response(dest, route_data)
-                response_data = route_data
-
-            else:
-                reply = format_unknown_response()
+            # Add assistant response to history
+            conversation_history.append({"role": "assistant", "content": result["reply"]})
 
             await websocket.send_json({
-                "reply": reply,
-                "intent": intent_type,
-                "data": response_data,
+                "reply": result["reply"],
+                "intent": result["intent"],
+                "data": result.get("data", {}),
+                "language": result.get("language", "en"),
             })
 
     except WebSocketDisconnect:

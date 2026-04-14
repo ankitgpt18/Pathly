@@ -5,3 +5,7 @@ pydantic-settings
 httpx
 websockets
 python-multipart
+vosk
+soundfile
+numpy
+google-generativeai
