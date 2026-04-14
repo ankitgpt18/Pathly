@@ -79,10 +79,6 @@ English, Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Gujarati, Punjabi, M
 - Navigate me to the railway station
 - When is the next bus?
 
-## Audio and Signal Processing
-
-This project is built around a real-time audio processing pipeline. The full breakdown is in [ASP_REPORT.md](ASP_REPORT.md), covering the dual-engine STT system, audio format conversion pipeline, multilingual TTS, voice activity detection, and WebSocket streaming architecture.
-
 ## License
 
 MIT
