@@ -10,6 +10,14 @@ import {
   MapPin,
   Trash2,
   LogOut,
+  PanelLeftClose,
+  SquarePen,
+  Search,
+  MoreHorizontal,
+  Share,
+  Pencil,
+  Pin,
+  Archive,
 } from "lucide-react";
 import ThemeToggle from "./theme-toggle";
 import { useAuth } from "./auth-context";
@@ -25,6 +33,7 @@ interface SidebarProps {
   activeChatId: string | null;
   onNewChat: () => void;
   onSelectChat: (id: string) => void;
+  onDeleteChat: (id: string) => void;
   isOpen: boolean;
   onClose: () => void;
   city?: string | null;
@@ -35,6 +44,7 @@ export default function Sidebar({
   activeChatId,
   onNewChat,
   onSelectChat,
+  onDeleteChat,
   isOpen,
   onClose,
   city,
@@ -42,6 +52,7 @@ export default function Sidebar({
   const [showChatList, setShowChatList] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { user, logout } = useAuth();
 
   const now = Date.now();
@@ -54,19 +65,73 @@ export default function Sidebar({
   const olderChats = chatHistory.filter((c) => now - c.timestamp >= 2 * oneDay);
 
   const renderChatItem = (chat: ChatHistoryItem) => (
-    <button
-      key={chat.id}
-      onClick={() => {
-        onSelectChat(chat.id);
-        onClose();
-      }}
-      className={`w-full text-left text-[13px] leading-snug truncate py-2 px-2 rounded-lg transition-colors duration-200 ${
-        activeChatId === chat.id ? "sidebar-btn active" : "sidebar-btn"
-      }`}
-      style={{ fontSize: "13px", padding: "6px 8px" }}
-    >
-      {chat.title}
-    </button>
+    <div key={chat.id} className="relative mb-0.5">
+      <button
+        onClick={() => {
+          onSelectChat(chat.id);
+          onClose();
+        }}
+        className={`group w-full text-left text-[13px] text-ellipsis whitespace-nowrap overflow-hidden py-2 pl-2 pr-8 rounded-lg transition-colors duration-200 ${
+          activeChatId === chat.id ? "sidebar-btn active" : "sidebar-btn"
+        }`}
+        style={{ fontSize: "13px", padding: "6px 8px 6px 8px" }}
+      >
+        {chat.title}
+        
+        {/* Right gradient fade simulating the ChatGPT text clipping effect */}
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[var(--th-glass-sidebar)] to-transparent opacity-100 group-hover:from-black/10 dark:group-hover:from-white/10 pointer-events-none rounded-r-lg" />
+      </button>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpenMenuId(openMenuId === chat.id ? null : chat.id);
+        }}
+        className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 opacity-0 hover:bg-black/10 dark:hover:bg-white/10 rounded-md z-10 
+          opacity-0 focus:opacity-100 peer-hover:opacity-100 hover:opacity-100 
+          transition-opacity"
+        style={{ color: "var(--th-text-primary)", opacity: openMenuId === chat.id ? 1 : undefined }}
+        // we use a style override to keep opacity 1 if menu is open
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+        onMouseLeave={(e) => { if (openMenuId !== chat.id) e.currentTarget.style.opacity = ""; }}
+      >
+        <MoreHorizontal size={14} />
+      </button>
+
+      {openMenuId === chat.id && (
+        <div
+          className="absolute z-[60] right-0 top-[100%] mt-1 w-36 rounded-xl border p-1 shadow-lg"
+          style={{
+            background: "var(--th-bg-primary)",
+            borderColor: "var(--th-border-subtle)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="w-full text-left flex items-center gap-2 px-2 py-1.5 text-[12px] hover:bg-black/5 dark:hover:bg-white/5 rounded-md" style={{ color: "var(--th-text-primary)" }}>
+            <Share size={12} /> Share
+          </button>
+          <button className="w-full text-left flex items-center gap-2 px-2 py-1.5 text-[12px] hover:bg-black/5 dark:hover:bg-white/5 rounded-md" style={{ color: "var(--th-text-primary)" }}>
+            <Pencil size={12} /> Rename
+          </button>
+          <button className="w-full text-left flex items-center gap-2 px-2 py-1.5 text-[12px] hover:bg-black/5 dark:hover:bg-white/5 rounded-md" style={{ color: "var(--th-text-primary)" }}>
+            <Pin size={12} /> Pin chat
+          </button>
+          <button className="w-full text-left flex items-center gap-2 px-2 py-1.5 text-[12px] hover:bg-black/5 dark:hover:bg-white/5 rounded-md" style={{ color: "var(--th-text-primary)" }}>
+            <Archive size={12} /> Archive
+          </button>
+          <div className="h-px w-full my-1" style={{ background: "var(--th-border-subtle)" }} />
+          <button
+            onClick={() => {
+              onDeleteChat(chat.id);
+              setOpenMenuId(null);
+            }}
+            className="w-full text-left flex items-center gap-2 px-2 py-1.5 text-[12px] text-red-500 hover:bg-red-500/10 rounded-md"
+          >
+            <Trash2 size={12} /> Delete
+          </button>
+        </div>
+      )}
+    </div>
   );
 
   const clearHistory = () => {
@@ -87,27 +152,33 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`glass-sidebar h-full flex flex-col py-6 px-5 z-50 transition-transform duration-300 ease-out
+        className={`glass-sidebar h-full flex flex-col py-6 px-5 z-50 transition-all duration-300 ease-out
           fixed md:relative
           w-[280px] min-w-[280px]
-          ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+          ${isOpen ? "translate-x-0 ml-0" : "-translate-x-full md:translate-x-0 md:-ml-[280px]"}`}
       >
-        {/* Close button (mobile only) */}
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="md:hidden absolute top-4 right-4"
+          className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           style={{ color: "var(--th-text-muted)" }}
         >
-          <X size={18} />
+          <PanelLeftClose size={18} />
         </button>
 
-        {/* Logo */}
-        <h1
-          className="text-[22px] font-bold tracking-tight mb-2"
-          style={{ color: "var(--th-text-primary)" }}
-        >
-          Pathly
-        </h1>
+        {/* Logo and Title */}
+        <div className="flex items-center gap-2.5 mb-2 pl-1 whitespace-nowrap">
+          <img src="/logo.png" alt="Pathly" className="w-[30px] h-[30px] object-cover rounded-md" />
+          <h1
+            className="text-[19px] font-bold tracking-tight"
+            style={{ 
+              color: "var(--th-text-primary)",
+              fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+            }}
+          >
+            Pathly
+          </h1>
+        </div>
 
         {/* Location badge */}
         {city && (
@@ -128,26 +199,27 @@ export default function Sidebar({
             className="sidebar-btn"
             id="new-chat-btn"
           >
-            <RotateCw size={16} />
-            New Chat
+            <SquarePen size={15} />
+            New chat
+          </button>
+          
+          <ThemeToggle />
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className={`sidebar-btn ${showHelp ? "active" : ""}`}
+            id="help-btn"
+          >
+            <HelpCircle size={15} />
+            Help
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className={`sidebar-btn ${showSettings ? "active" : ""}`}
             id="settings-btn"
           >
-            <Settings size={16} />
+            <Settings size={15} />
             Settings
           </button>
-          <button
-            onClick={() => setShowHelp(!showHelp)}
-            className={`sidebar-btn ${showHelp ? "active" : ""}`}
-            id="help-btn"
-          >
-            <HelpCircle size={16} />
-            Help
-          </button>
-          <ThemeToggle />
         </nav>
 
         {/* Settings Panel */}

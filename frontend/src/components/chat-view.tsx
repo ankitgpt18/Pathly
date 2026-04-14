@@ -313,9 +313,6 @@ export default function ChatView({
           onLanguageChange={onLanguageChange}
           selectedMode={selectedMode}
         />
-        <p className="text-[10px] md:text-[11px] mt-2" style={{ color: "var(--th-text-faint)" }}>
-          Pathly — AI Transport for India
-        </p>
       </div>
     </main>
   );

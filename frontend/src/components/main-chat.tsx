@@ -52,7 +52,7 @@ export default function MainChat({
         <UserProfile />
       </div>
 
-      <div className="flex flex-col items-center gap-4 md:gap-5 -mt-4 md:-mt-8 w-full max-w-[700px]">
+      <div className="flex flex-col items-center gap-4 md:gap-5 -mt-4 md:-mt-8 w-full max-w-[700px] mb-24 md:mb-32">
         {/* Orb — smaller on mobile, full on desktop */}
         <div className="orb-container scale-[0.55] md:scale-100 -mb-4 md:mb-0">
           <div className="orb" />
@@ -110,13 +110,6 @@ export default function MainChat({
         {/* Mode selector */}
         <ModeSelector value={selectedMode} onChange={onModeChange} />
 
-        <p
-          className="text-[10px] md:text-[11px] uppercase tracking-[2px] font-medium mt-1"
-          style={{ color: "var(--th-text-faint)" }}
-        >
-          Try an example below
-        </p>
-
         <SuggestionCards onSelect={onSendMessage} mode={selectedMode} />
       </div>
 
@@ -131,9 +124,6 @@ export default function MainChat({
           onLanguageChange={onLanguageChange}
           selectedMode={selectedMode}
         />
-        <p className="text-[10px] md:text-[11px] mt-2.5" style={{ color: "var(--th-text-faint)" }}>
-          Pathly — AI Transport for India
-        </p>
       </div>
     </main>
   );

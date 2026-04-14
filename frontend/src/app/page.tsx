@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+import { Menu } from "lucide-react";
 import Sidebar from "@/components/sidebar";
 import MainChat from "@/components/main-chat";
 import ChatView from "@/components/chat-view";
@@ -21,9 +22,12 @@ export default function Home() {
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [selectedMode, setSelectedMode] = useState("general");
 
-  // Load saved language on mount
+  // Load saved language on mount and open sidebar on desktop
   useEffect(() => {
     setSelectedLanguage(loadLanguage());
+    if (window.innerWidth >= 768) {
+      setSidebarOpen(true);
+    }
   }, []);
 
   const {
@@ -34,6 +38,7 @@ export default function Home() {
     sendMessage,
     startNewChat,
     selectChat,
+    deleteChat,
   } = useChat(lat, lon);
 
   const { isListening, isSpeaking, startListening, stopListening, speak, stopSpeaking } =
@@ -127,12 +132,24 @@ export default function Home() {
         selectedMode={selectedMode}
       />
 
+      {/* Desktop menu toggle (when sidebar closed) */}
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="hidden md:flex absolute top-5 left-5 z-40 w-10 h-10 items-center justify-center rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          style={{ color: "var(--th-text-primary)" }}
+        >
+          <Menu size={22} />
+        </button>
+      )}
+
       {/* Sidebar */}
       <Sidebar
         chatHistory={chatHistory}
         activeChatId={activeChatId}
         onNewChat={startNewChat}
         onSelectChat={selectChat}
+        onDeleteChat={deleteChat}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         city={city}

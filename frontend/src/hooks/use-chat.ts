@@ -166,6 +166,17 @@ export function useChat(lat?: number, lon?: number) {
     [activeChatId, lat, lon, chats]
   );
 
+  const deleteChat = useCallback((id: string) => {
+    setChats((prev) => {
+      const remaining = prev.filter((c) => c.id !== id);
+      saveChats(remaining);
+      return remaining;
+    });
+    if (activeChatId === id) {
+      setActiveChatId(null);
+    }
+  }, [activeChatId]);
+
   return {
     messages,
     chatHistory,
@@ -174,5 +185,6 @@ export function useChat(lat?: number, lon?: number) {
     sendMessage,
     startNewChat,
     selectChat,
+    deleteChat,
   };
 }

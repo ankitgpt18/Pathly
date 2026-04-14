@@ -53,8 +53,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = useCallback(() => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      console.warn("Google Client ID not set. Using guest mode.");
-      loginAsGuest();
+      console.warn("Google Client ID not set. Simulating Google login for demo purposes.");
+      const demoUser: User = {
+        name: "Demo User",
+        email: "user@demo.com",
+        avatar: undefined,
+        isGuest: false,
+      };
+      setUser(demoUser);
+      saveUser(demoUser);
       return;
     }
 

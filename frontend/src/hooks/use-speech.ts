@@ -90,12 +90,13 @@ export function useSpeech(selectedLanguage: string = "en") {
       onResult(text);
     };
 
+    recognition.onend = () => setIsListening(false);
+
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error("Speech error:", event.error);
+      alert(`Microphone Error: ${event.error}. Please check browser settings or try another browser like Chrome.`);
       setIsListening(false);
     };
-
-    recognition.onend = () => setIsListening(false);
 
     recognitionRef.current = recognition;
     recognition.start();
