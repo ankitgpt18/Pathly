@@ -81,4 +81,4 @@ English, Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Gujarati, Punjabi, M
 
 ## License
 
-MIT
+MIT License. Contributions are welcome!
